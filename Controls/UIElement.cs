@@ -4,6 +4,7 @@ using Appercode.UI.Internals;
 using Appercode.UI.StylesAndResources;
 using System;
 using System.Collections;
+using System.Linq;
 using System.Windows;
 using SW = System.Windows;
 
@@ -931,12 +932,11 @@ namespace Appercode.UI.Controls
 
         private void NotifyDataContextChanged(DataContextChangedEventArgs ea)
         {
-            foreach (var child in LogicalTreeHelper.GetChildren(this))
+            foreach (var childView in LogicalTreeHelper.GetChildren(this).OfType<UIElement>())
             {
-                var childView = child as UIElement;
-                if (childView != null &&
-                    (ea.ChangeReason == DataContextChangedReason.EnteringLiveTree
-                    || childView.ReadLocalValue(DataContextProperty) == DependencyProperty.UnsetValue))
+                if (ea.ChangeReason == DataContextChangedReason.EnteringLiveTree
+                    || childView.ReadLocalValue(DataContextProperty) == DependencyProperty.UnsetValue
+                    || childView.GetExpression(DataContextProperty) != null)
                 {
                     childView.OnAncestorDataContextChanged(ea);
                 }

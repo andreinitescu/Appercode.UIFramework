@@ -206,21 +206,28 @@ namespace Appercode.UI.Controls
                 this.RemoveContentTemplateInstance();
                 this.RemoveLogicalChild(this.contentTemplateInstance);
             }
+
+            var content = this.Content;
             if (newContentTemplate != null)
             {
                 this.contentTemplateInstance = (UIElement)newContentTemplate.LoadContent();
                 this.contentTemplateInstance.LayoutUpdated += this.ContentControl_LayoutUpdated;
                 this.AddLogicalChild(this.contentTemplateInstance);
-                if (this.Content is UIElement)
+                if (content is UIElement)
                 {
                     this.NativeChangeUIContentParent();
                 }
-                this.contentTemplateInstance.DataContext = this.Content;
+
+                if (content != null)
+                {
+                    this.contentTemplateInstance.DataContext = content; 
+                }
+
                 this.AddContentTemplateInstance();
             }
             else
             {
-                if (this.Content is UIElement)
+                if (content is UIElement)
                 {
                     this.NativeChangeUIContentParent();
                 }

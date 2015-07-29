@@ -572,7 +572,11 @@ namespace Appercode.UI.Controls
                 }
                 else
                 {
-                    this.DataContext = this.Content;
+                    var content = this.Content;
+                    if (content != null)
+                    {
+                        this.DataContext = content;
+                    }
                 }
             }
             this.Template = dataTemplate;

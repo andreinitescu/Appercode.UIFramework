@@ -29,7 +29,7 @@ namespace Appercode.UI.Controls
         {
             if (this.ViewController == null)
             {
-                this.ViewController = new AppercodePageViewController();
+                this.ViewController = this.CreateViewController();
                 WeakReference wr = new WeakReference(this);
                 this.ViewController.Appeared += (sender, e) =>
                 {
@@ -57,6 +57,15 @@ namespace Appercode.UI.Controls
                 this.ViewController.Title = this.Title;
             }
             base.NativeInit();
+        }
+
+        /// <summary>
+        /// Creates a ViewController instance to be used for this page.
+        /// </summary>
+        /// <returns>A new instance of <see cref="AppercodePageViewController" /> type.</returns>
+        protected virtual AppercodePageViewController CreateViewController()
+        {
+            return new AppercodePageViewController();
         }
 
         protected override void OnTitleChanged(string oldValue, string newValue)
@@ -133,33 +142,16 @@ namespace Appercode.UI.Controls
             private NSObject keyboardObserverWillShow;
             private NSObject keyboardObserverWillHide;
 
-            bool ignoreScroling = false;
+            private bool ignoreScrolling = false;
 
             public AppercodePageViewController()
             {
                 this.Scroll = new AppercodeUIScrollView();
                 this.Scroll.ScrollEnabled = false;
-                this.Scroll.Scrolled += HandleScrolled;
-            }
-
-            void HandleScrolled (object sender, EventArgs e)
-            {
-                if(!ignoreScroling)
-                {
-                    UIView activeView = this.KeyboardGetActiveView();
-                    if (activeView != null)
-                    {
-                        activeView.ResignFirstResponder();
-                    }
-                }
+                this.Scroll.Scrolled += this.OnScrolled;
             }
 
             public event EventHandler Appeared = delegate { };
-
-            public override void ViewDidLoad()
-            {
-                base.ViewDidLoad();
-            }
 
             public override void ViewWillAppear(bool animated)
             {
@@ -185,8 +177,6 @@ namespace Appercode.UI.Controls
                 var inset = ((UIScrollView)this.View).ContentInset;
                 this.Appeared(this, EventArgs.Empty);
             }
-
-            #region KeybordMagic
 
             protected virtual void RegisterForKeyboardNotifications()
             {
@@ -241,12 +231,12 @@ namespace Appercode.UI.Controls
                 scroll.ContentInset = contentInsets;
                 if (activeView != null)
                 {
-                    this.ignoreScroling = true;
+                    this.ignoreScrolling = true;
                     UIView.Animate(0.3, () =>
                         {
                             scroll.ScrollRectToVisible(scroll.Subviews[0].ConvertRectFromView(activeView.Frame, activeView.Superview), false);
                         },
-                        () => this.ignoreScroling = false);
+                        () => this.ignoreScrolling = false);
                 }
             }
 
@@ -293,7 +283,17 @@ namespace Appercode.UI.Controls
                 return this.Scroll.Subviews.FirstOrDefault() as UIScrollView ?? this.Scroll;
             }
 
-            #endregion
+            private void OnScrolled(object sender, EventArgs e)
+            {
+                if (!ignoreScrolling)
+                {
+                    UIView activeView = this.KeyboardGetActiveView();
+                    if (activeView != null)
+                    {
+                        activeView.ResignFirstResponder();
+                    }
+                }
+            }
         }
     }
 }
